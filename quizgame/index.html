@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Game</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-image: url('https://www.transparenttextures.com/patterns/dark-brick-wall.png');
+      background-color: #1e3a8a;
+      color: white;
+      font-family: 'Arial', sans-serif;
+    }
+    .neon-text {
+      text-shadow: 0 0 10px #00f6ff, 0 0 20px #00f6ff, 0 0 30px #00f6ff;
+      color: #00f6ff;
+    }
+    .neon-border {
+      border: 2px solid #00f6ff;
+      box-shadow: 0 0 10px #00f6ff, 0 0 20px #00f6ff;
+    }
+    .correct {
+      border: 2px solid #00ff00;
+      box-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00;
+    }
+    .incorrect {
+      border: 2px solid #ff0000;
+      box-shadow: 0 0 10px #ff0000, 0 0 20px #ff0000;
+    }
+    .option {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      margin: 10px 0;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 20px;
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+    .option:hover {
+      transform: scale(1.05);
+    }
+    .option-label {
+      margin-right: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen">
+  <h1 class="text-4xl font-bold neon-text mb-8">Quiz Game est. 2025</h1>
+  <div id="quiz-container" class="w-full max-w-lg p-6 neon-border rounded-lg">
+    <h2 id="question" class="text-2xl neon-text mb-4"></h2>
+    <div id="options" class="space-y-4">
+      <div id="option-div-0" class="option neon-border" onclick="selectOption(0)">
+        <span class="option-label neon-text">A.</span>
+        <span id="option-0"></span>
+      </div>
+      <div id="option-div-1" class="option neon-border" onclick="selectOption(1)">
+        <span class="option-label neon-text">B.</span>
+        <span id="option-1"></span>
+      </div>
+      <div id="option-div-2" class="option neon-border" onclick="selectOption(2)">
+        <span class="option-label neon-text">C.</span>
+        <span id="option-2"></span>
+      </div>
+      <div id="option-div-3" class="option neon-border" onclick="selectOption(3)">
+        <span class="option-label neon-text">D.</span>
+        <span id="option-3"></span>
+      </div>
+    </div>
+    <button id="next-btn" class="mt-6 px-4 py-2 bg-transparent neon-border neon-text rounded hover:bg-blue-900" onclick="nextQuestion()">Next</button>
+  </div>
+  <div id="result" class="hidden mt-6 text-center">
+    <h2 class="text-2xl neon-text">Quiz Completed!</h2>
+    <p id="score" class="text-xl neon-text mt-2"></p>
+    <button class="mt-4 px-4 py-2 bg-transparent neon-border neon-text rounded hover:bg-blue-900" onclick="restartQuiz()">Restart</button>
+  </div>
+
+  <script>
+    const allQuestions = [
+      {
+        question: "Which company became the first to deploy a fully autonomous robotaxi fleet in a major city in 2024?",
+        options: ["Tesla", "Waymo", "Cruise", "Zoox"],
+        correct: 1
+      },
+      {
+        question: "What was the primary focus of the 2025 UN Climate Change Conference (COP30) held in Brazil?",
+        options: ["Ocean conservation", "Deforestation reduction", "Carbon capture technology", "Renewable energy subsidies"],
+        correct: 1
+      },
+      {
+        question: "Which country won the most gold medals at the 2024 Paris Olympics?",
+        options: ["United States", "China", "France", "Japan"],
+        correct: 0
+      },
+      {
+        question: "What breakthrough in quantum computing was announced by IBM in early 2025?",
+        options: ["First commercial quantum computer", "Stable quantum error correction", "Quantum supremacy over classical systems", "Quantum internet prototype"],
+        correct: 1
+      },
+      {
+        question: "Which artist won the Grammy for Album of the Year in 2025?",
+        options: ["Billie Eilish", "Beyoncé", "Adele", "SZA"],
+        correct: 2
+      },
+      {
+        question: "What new particle was discovered at CERN in 2024, advancing our understanding of dark matter?",
+        options: ["Axion", "Sterile neutrino", "Higgs boson variant", "Gravitino"],
+        correct: 1
+      },
+      {
+        question: "Which nation became the first to achieve a manned mission to Mars in a simulation in 2025?",
+        options: ["United States", "China", "Russia", "India"],
+        correct: 0
+      },
+      {
+        question: "What technology was widely adopted in 2025 to combat deepfake misinformation?",
+        options: ["Blockchain verification", "AI watermarking", "Quantum encryption", "Facial recognition"],
+        correct: 1
+      },
+      {
+        question: "Which country introduced the world’s first universal basic income program in 2025?",
+        options: ["Finland", "Canada", "South Korea", "Germany"],
+        correct: 2
+      },
+      {
+        question: "What was the name of the first AI to win a major international chess championship in 2025?",
+        options: ["AlphaZero", "Stockfish", "DeepMind X", "GrokChess"],
+        correct: 2
+      },
+      {
+        question: "Which film won the Best Picture at the 2025 Academy Awards?",
+        options: ["Dune: Part Two", "The Batman: Part II", "Oppenheimer", "Avatar: Fire and Ash"],
+        correct: 3
+      },
+      {
+        question: "What major environmental treaty was signed in 2025 to protect the Arctic from oil drilling?",
+        options: ["Arctic Shield Pact", "Polar Preservation Agreement", "Northern Accord", "Ice Cap Treaty"],
+        correct: 0
+      },
+      {
+        question: "Which space agency launched the first successful mission to retrieve samples from Europa, Jupiter's moon, in 2025?",
+        options: ["NASA", "ESA", "SpaceX", "CNSA"],
+        correct: 1
+      },
+      {
+        question: "What new renewable energy source gained significant traction in 2025 due to advancements in efficiency?",
+        options: ["Tidal energy", "Geothermal energy", "Solar paint", "Nuclear fusion"],
+        correct: 2
+      },
+      {
+        question: "Which global leader was awarded the Nobel Peace Prize in 2025 for mediating a historic Middle East peace deal?",
+        options: ["Emmanuel Macron", "Narendra Modi", "António Guterres", "Recep Tayyip Erdoğan"],
+        correct: 2
+      },
+      {
+        question: "What was the name of the first spacecraft to successfully land on Venus in 2024?",
+        options: ["Venus Pathfinder", "Aphrodite Explorer", "Venusian Dawn", "Magellan II"],
+        correct: 2
+      },
+      {
+        question: "Which city hosted the 2025 World Expo, showcasing innovations in sustainable urban development?",
+        options: ["Osaka", "Dubai", "Paris", "Singapore"],
+        correct: 0
+      },
+      {
+        question: "What synthetic biology breakthrough in 2025 allowed for the creation of artificial organs on a mass scale?",
+        options: ["CRISPR organ editing", "3D bioprinting with stem cells", "Synthetic DNA scaffolds", "Nanobot tissue engineering"],
+        correct: 1
+      },
+      {
+        question: "Which company launched the first consumer-grade augmented reality contact lenses in 2025?",
+        options: ["Google", "Mojo Vision", "Apple", "Meta"],
+        correct: 1
+      },
+      {
+        question: "What was the name of the global initiative launched in 2025 to combat plastic pollution in the oceans?",
+        options: ["Ocean Cleanup Project", "Blue Planet Pact", "Marine Restoration Alliance", "Global Plastic Treaty"],
+        correct: 3
+      },
+      {
+        question: "Which country became the first to achieve 100% renewable energy production in 2025?",
+        options: ["Sweden", "Iceland", "Costa Rica", "Denmark"],
+        correct: 2
+      },
+      {
+        question: "What was the name of the AI system that assisted in decoding ancient languages at an unprecedented scale in 2025?",
+        options: ["LinguaNet", "Polyglot AI", "DecipherX", "AncientScript"],
+        correct: 2
+      },
+      {
+        question: "Which 2025 film became the highest-grossing movie of all time, surpassing Avatar?",
+        options: ["Avatar: Fire and Ash", "Avengers: Secret Wars", "Jurassic World: Dominion", "Star Wars: New Dawn"],
+        correct: 1
+      },
+      {
+        question: "What new material discovered in 2025 revolutionized the aerospace industry with its lightweight and durable properties?",
+        options: ["Graphene 2.0", "Aerogel X", "Metamaterial Alpha", "Carbon Nanotube Alloy"],
+        correct: 3
+      },
+      {
+        question: "Which organization led the 2025 global effort to eradicate malaria using gene-edited mosquitoes?",
+        options: ["WHO", "Gates Foundation", "UNICEF", "Red Cross"],
+        correct: 1
+      },
+      {
+        question: "What was the name of the 2025 international agreement to regulate AI development and ethics?",
+        options: ["AI Global Accord", "Ethics in AI Treaty", "Digital Ethics Pact", "AI Safety Framework"],
+        correct: 0
+      },
+      {
+        question: "Which 2025 scientific discovery confirmed the existence of a fifth fundamental force of nature?",
+        options: ["Dark energy force", "Quantum entanglement force", "Hyperforce", "X17 particle interaction"],
+        correct: 3
+      },
+      {
+        question: "Which country hosted the first-ever Global AI Summit in 2025 to address AI governance?",
+        options: ["United States", "China", "United Kingdom", "Singapore"],
+        correct: 2
+      },
+      {
+        question: "What was the name of the 2025 space mission that discovered microbial life on Mars?",
+        options: ["Mars LifeQuest", "Red Planet Explorer", "Martian Genesis", "ExoMars 2025"],
+        correct: 2
+      },
+      {
+        question: "Which 2025 tech company developed the first fully functional holographic display for consumer use?",
+        options: ["Samsung", "Sony", "Looking Glass", "HoloTech"],
+        correct: 2
+      },
+      {
+        question: "What was the focus of the 2025 G20 Summit held in India?",
+        options: ["Global health security", "Digital economy expansion", "Climate finance", "Food security"],
+        correct: 2
+      },
+      {
+        question: "Which 2025 video game became a cultural phenomenon, blending VR and AI for an immersive experience?",
+        options: ["Echoes of Eternity", "CyberSmith", "Neon Dreams", "Virtual Odyssey"],
+        correct: 3
+      },
+      {
+        question: "What was the name of the 2025 global initiative to provide internet access to all remote regions?",
+        options: ["ConnectEarth", "GlobalNet", "Internet for All", "Digital Bridge"],
+        correct: 2
+      },
+      {
+        question: "Which 2025 environmental campaign successfully halved global deforestation rates?",
+        options: ["Green Canopy Project", "Forest Guardians", "Earth's Lungs Initiative", "Tree Pact 2025"],
+        correct: 0
+      },
+      {
+        question: "What was the name of the 2025 breakthrough in fusion energy that made it commercially viable?",
+        options: ["Stellarator X", "Tokamak Fusion", "FusionCore", "Helion Energy System"],
+        correct: 3
+      },
+      {
+        question: "Which 2025 book won the Pulitzer Prize for Fiction, addressing themes of climate change and migration?",
+        options: ["The Last Oasis", "Drift of the Earth", "Exodus 2050", "Shifting Sands"],
+        correct: 1
+      },
+      {
+        question: "What was the name of the 2025 satellite constellation that improved global weather prediction accuracy?",
+        options: ["WeatherSphere", "ClimaSat", "StormWatch", "AtmosNet"],
+        correct: 1
+      },
+      {
+        question: "Which 2025 fashion trend incorporated smart fabrics that changed color based on temperature?",
+        options: ["ChromaWear", "ThermaStyle", "ColorShift", "SmartHue"],
+        correct: 0
+      },
+      {
+        question: "What was the name of the 2025 UN resolution to protect indigenous lands from corporate exploitation?",
+        options: ["Indigenous Shield", "Earth Guardians", "Ancestral Rights Pact", "Native Lands Accord"],
+        correct: 2
+      },
+      {
+        question: "Which 2025 medical device allowed for non-invasive brain surgery using focused ultrasound?",
+        options: ["NeuroWave", "BrainPulse", "SonoFix", "Ultrasound Scalpel"],
+        correct: 1
+      },
+      {
+        question: "What was the name of the 2025 global music festival that promoted peace and unity through art?",
+        options: ["Harmony Fest", "Global Beats", "Unity Sound", "PeaceWave"],
+        correct: 0
+      },
+      {
+        question: "Which 2025 startup developed a device to purify water using solar energy on a massive scale?",
+        options: ["AquaSolar", "PureRay", "SunClean", "HydroLight"],
+        correct: 1
+      },
+      {
+        question: "What was the name of the 2025 documentary that exposed the impact of fast fashion on the environment?",
+        options: ["Threads of Change", "Fashion's Footprint", "Wear and Tear", "The Cost of Style"],
+        correct: 0
+      },
+      {
+        question: "Which 2025 tech company created a neural interface for seamless human-AI collaboration?",
+        options: ["Neuralink", "BrainGate", "MindSync", "NeuroBridge"],
+        correct: 2
+      },
+      {
+        question: "What was the name of the 2025 global initiative to restore coral reefs using AI-guided robots?",
+        options: ["ReefBot Project", "Coral Guardians", "AquaRestorers", "Ocean Revive"],
+        correct: 1
+      },
+      {
+        question: "Which 2025 sports event introduced mixed reality for an enhanced viewing experience?",
+        options: ["FIFA World Cup", "Super Bowl", "Olympics", "Tour de France"],
+        correct: 2
+      },
+      {
+        question: "What was the name of the 2025 AI tool that helped small farmers optimize crop yields sustainably?",
+        options: ["AgriMind", "FarmWise", "GrowEasy", "CropSync"],
+        correct: 1
+      },
+      {
+        question: "Which 2025 city became the first to implement a carbon tax on all businesses?",
+        options: ["Dubai", "Singapore", "Copenhagen", "Vancouver"],
+        correct: 2
+      },
+      {
+        question: "What was the name of the 2025 global campaign to promote mental health awareness through art?",
+        options: ["MindCanvas", "ArtHeals", "ExpressWell", "CreativeMinds"],
+        correct: 0
+      },
+      {
+        question: "Which 2025 company developed a biodegradable plastic alternative made from algae?",
+        options: ["BioPlast", "AlgaePack", "GreenWrap", "EcoFilm"],
+        correct: 1
+      },
+      {
+        question: "What was the name of the 2025 space telescope that discovered the most distant galaxy ever observed?",
+        options: ["CosmoScope", "StarSeeker", "GalacticEye", "AstroVision"],
+        correct: 2
+      },
+      {
+        question: "Which 2025 chef won the global culinary award for sustainable cooking practices?",
+        options: ["René Redzepi", "Massimo Bottura", "Dan Barber", "Gaggan Anand"],
+        correct: 2
+      },
+      {
+        question: "What was the name of the 2025 global art project that turned urban walls into air-purifying murals?",
+        options: ["CleanCanvas", "EcoArt", "PureWalls", "GreenGraffiti"],
+        correct: 0
+      },
+      {
+        question: "Which 2025 tech firm created a wearable device to monitor air quality in real-time?",
+        options: ["AirSense", "BreatheTech", "PureTrack", "EcoWear"],
+        correct: 1
+      },
+      {
+        question: "What was the name of the 2025 global initiative to teach coding to underprivileged youth?",
+        options: ["CodeFuture", "TechForAll", "ByteBridge", "DigitalLeap"],
+        correct: 0
+      },
+      {
+        question: "Which 2025 scientist won the Nobel Prize for Chemistry for a new method of carbon capture?",
+        options: ["Jennifer Doudna", "Frances Arnold", "Klaus-Robert Müller", "Omar Yaghi"],
+        correct: 3
+      },
+      {
+        question: "What was the name of the 2025 global music platform that promoted independent artists using AI?",
+        options: ["IndieBoost", "SoundRise", "MelodyMatch", "EchoAI"],
+        correct: 1
+      },
+      {
+        question: "Which 2025 country became the first to implement a four-day workweek nationwide?",
+        options: ["New Zealand", "Iceland", "Japan", "Spain"],
+        correct: 0
+      },
+      {
+        question: "What was the name of the 2025 underwater archaeological discovery that revealed a lost civilization?",
+        options: ["Atlantis Revealed", "Yonaguni Monument", "Cleopatra’s Tomb", "Bimini Road"],
+        correct: 1
+      },
+      {
+        question: "Which 2025 company developed a drone that plants trees in deforested areas?",
+        options: ["TreeFly", "DroneSeed", "EcoDrone", "GreenWing"],
+        correct: 1
+      },
+      {
+        question: "What was the name of the 2025 global initiative to preserve endangered languages?",
+        options: ["LinguaViva", "SpeakSafe", "TongueKeep", "VoiceGuard"],
+        correct: 0
+      },
+      {
+        question: "Which 2025 tech company created a self-driving electric scooter for urban mobility?",
+        options: ["Lime", "Bird", "Spin", "Tier"],
+        correct: 2
+      },
+      {
+        question: "What was the name of the 2025 global competition for young inventors to solve climate issues?",
+        options: ["Climate Innovators", "GreenSpark", "EcoChallenge", "FutureFix"],
+        correct: 2
+      },
+      {
+        question: "Which 2025 musician released an album entirely produced using renewable energy?",
+        options: ["Coldplay", "Billie Eilish", "Ed Sheeran", "The Weeknd"],
+        correct: 0
+      },
+      {
+        question: "What was the name of the 2025 global initiative to clean up space debris?",
+        options: ["OrbitClear", "SpaceSweep", "CosmoClean", "AstroPurge"],
+        correct: 1
+      },
+      {
+        question: "Which 2025 city became the first to ban all single-use plastics?",
+        options: ["Amsterdam", "Vancouver", "Sydney", "Stockholm"],
+        correct: 1
+      },
+      {
+        question: "What was the name of the 2025 global health campaign to reduce childhood obesity?",
+        options: ["FitKids", "HealthyFuture", "GrowEasy", "ActiveYouth"],
+        correct: 0
+      },
+      {
+        question: "Which 2025 company developed a robot that assists in elderly care with AI?",
+        options: ["CareBot", "ElderMind", "SeniorAid", "CompanionAI"],
+        correct: 2
+      },
+      {
+        question: "What was the name of the 2025 global art exhibition that showcased indigenous cultures?",
+        options: ["Roots Revealed", "Ancestral Art", "Heritage Canvas", "Tribal Echoes"],
+        correct: 1
+      },
+      {
+        question: "Which 2025 scientist discovered a new species of fish in the Pacific Ocean?",
+        options: ["Sylvia Earle", "David Gruber", "Enric Sala", "Callum Roberts"],
+        correct: 1
+      },
+      {
+        question: "What was the name of the 2025 global initiative to promote sustainable tourism?",
+        options: ["EcoTravel", "GreenVoyage", "PureJourney", "SustainableWander"],
+        correct: 0
+      },
+      {
+        question: "Which 2025 tech company created a virtual reality platform for remote education?",
+        options: ["Oculus", "ClassVR", "EduVerse", "LearnSpace"],
+        correct: 2
+      },
+      {
+        question: "What was the name of the 2025 global campaign to reduce food waste in restaurants?",
+        options: ["PlateWise", "SaveBite", "NoWaste", "FoodCare"],
+        correct: 1
+      },
+      {
+        question: "Which 2025 country became the first to achieve zero carbon emissions in its capital city?",
+        options: ["Norway", "Bhutan", "Sweden", "Finland"],
+        correct: 1
+      },
+      {
+        question: "What was the name of the 2025 global initiative to protect migratory birds from climate change?",
+        options: ["FlySafe", "Wings of Change", "BirdHaven", "SkyGuard"],
+        correct: 0
+      },
+      {
+        question: "Which 2025 company developed a solar-powered desalination plant for arid regions?",
+        options: ["SolarPure", "AquaSun", "DesalTech", "PureWave"],
+        correct: 1
+      },
+      {
+        question: "What was the name of the 2025 global music collaboration that raised funds for reforestation?",
+        options: ["Melody for Trees", "Sound of Green", "Harmony Woods", "Rhythm Roots"],
+        correct: 2
+      }
+    ];
+
+    let currentQuestions = [];
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let selectedOption = null;
+    let usedQuestionIndices = JSON.parse(localStorage.getItem('usedQuestionIndices')) || [];
+
+    function loadQuestions() {
+      if (usedQuestionIndices.length >= allQuestions.length) {
+        usedQuestionIndices = [];
+        localStorage.setItem('usedQuestionIndices', JSON.stringify(usedQuestionIndices));
+      }
+
+      const availableQuestions = allQuestions.filter((_, index) => !usedQuestionIndices.includes(index));
+      const shuffledQuestions = availableQuestions.sort(() => Math.random() - 0.5);
+      currentQuestions = shuffledQuestions.slice(0, 10);
+
+      currentQuestions.forEach(q => {
+        const originalIndex = allQuestions.indexOf(q);
+        usedQuestionIndices.push(originalIndex);
+      });
+
+      localStorage.setItem('usedQuestionIndices', JSON.stringify(usedQuestionIndices));
+      currentQuestionIndex = 0;
+      score = 0;
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      const question = currentQuestions[currentQuestionIndex];
+      document.getElementById('question').textContent = question.question;
+
+      for (let i = 0; i < 4; i++) {
+        const optionDiv = document.getElementById(`option-div-${i}`);
+        optionDiv.classList.remove('correct', 'incorrect');
+        optionDiv.classList.add('neon-border');
+        document.getElementById(`option-${i}`).textContent = question.options[i];
+      }
+
+      document.getElementById('next-btn').disabled = true;
+      selectedOption = null;
+    }
+
+    function selectOption(index) {
+      if (selectedOption !== null) return;
+
+      selectedOption = index;
+      const correctIndex = currentQuestions[currentQuestionIndex].correct;
+      const selectedDiv = document.getElementById(`option-div-${index}`);
+      const correctDiv = document.getElementById(`option-div-${correctIndex}`);
+
+      if (index === correctIndex) {
+        selectedDiv.classList.add('correct');
+        score++;
+      } else {
+        selectedDiv.classList.add('incorrect');
+        correctDiv.classList.add('correct');
+      }
+
+      document.getElementById('next-btn').disabled = false;
+    }
+
+    function nextQuestion() {
+      currentQuestionIndex++;
+      if (currentQuestionIndex < currentQuestions.length) {
+        loadQuestion();
+      } else {
+        showResult();
+      }
+    }
+
+    function showResult() {
+      document.getElementById('quiz-container').classList.add('hidden');
+      document.getElementById('result').classList.remove('hidden');
+      document.getElementById('score').textContent = `Your Score: ${score} / ${currentQuestions.length}`;
+    }
+
+    function restartQuiz() {
+      document.getElementById('quiz-container').classList.remove('hidden');
+      document.getElementById('result').classList.add('hidden');
+      loadQuestions();
+    }
+
+    loadQuestions();
+  </script>
+</body>
+</html>
